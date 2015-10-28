@@ -4,7 +4,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE Unsafe #-}
 
-module Concurrent.Internal.PrimRef
+module Concurrent.Primitive.PrimRef
   ( 
   -- * Primitive References
     PrimRef(..)
@@ -42,7 +42,7 @@ module Concurrent.Internal.PrimRef
   , prefetchFrozenPrimRef3
   ) where
 
-import Concurrent.Internal.Util
+import Concurrent.Primitive.Array
 import Control.Monad.Primitive
 import Control.Monad.ST
 import Data.Data

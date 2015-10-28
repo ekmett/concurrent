@@ -44,9 +44,12 @@ library
     Concurrent.Exception
     Concurrent.Internal.Backoff
     Concurrent.Internal.Counted
-    Concurrent.Internal.PrimRef
     Concurrent.Internal.Util
     Concurrent.IVar
+    Concurrent.Primitive
+    Concurrent.Primitive.Array
+    Concurrent.Primitive.Class
+    Concurrent.Primitive.PrimRef
 
   ghc-options: -Wall -fwarn-tabs
 
