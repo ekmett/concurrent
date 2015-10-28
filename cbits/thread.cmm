@@ -1,7 +1,7 @@
 #include <Cmm.h>
 
 pinThreadzh() {
-  W_ locked, flags, cap;
+  W_ locked, flags;
   flags  = TO_W_(StgTSO_flags(CurrentTSO));
 
   if (flags & TSO_LOCKED != 0) {
@@ -11,12 +11,22 @@ pinThreadzh() {
     StgTSO_flags(CurrentTSO) = %lobits32(flags | TSO_LOCKED);
   }
 
-  cap = TO_W_(Capability_no(StgTSO_cap(tso)));
-
-  return (locked, cap);
+  return (locked);
 }
 
 unpinThreadzh() {
   StgTSO_flags(CurrentTSO) = %lobits32(TO_W_(StgTSO_flags(CurrentTSO)) & (~TSO_LOCKED));
   return ();
+}
+
+currentCapabilityzh() {
+  W_ i;
+  i = TO_W_(Capability_no(StgTSO_cap(CurrentTSO)));
+  return (i);
+}
+
+currentThreadzh() {
+  W_ i;
+  i = TO_W_(StgTSO_id(CurrentTSO));
+  return (i);
 }
