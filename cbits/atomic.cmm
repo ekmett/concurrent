@@ -63,6 +63,45 @@ atomicModifyArrayzh (gcptr arr, W_ ind, gcptr f) {
   return (r);
 }
 
+/* MutableArray s a -> Int# -> (a -> (a, b)) -> State# s -> (# State# s, b #) */
+localAtomicModifyArrayzh (gcptr arr, W_ ind, gcptr f) {
+  W_ p, z, x, y, r, h, len;
+
+  HP_CHK_GEN_TICKY(SIZE);
+
+  TICK_ALLOC_THUNK_2();
+  CCCS_ALLOC(THUNK_2_SIZE);
+  z = Hp - THUNK_2_SIZE + WDS(1);
+  SET_HDR(z, stg_ap_2_upd_info, CCCS);
+  LDV_RECORD_CREATE(z);
+  StgThunk_payload(z,0) = f;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  y = z - THUNK_1_SIZE;
+  SET_HDR(y, stg_sel_0_upd_info, CCCS);
+  LDV_RECORD_CREATE(y);
+  StgThunk_payload(y,0) = z;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  r = y - THUNK_1_SIZE;
+  SET_HDR(r, stg_sel_1_upd_info, CCCS);
+  LDV_RECORD_CREATE(r);
+  StgThunk_payload(r,0) = z;
+
+  p = arr + SIZEOF_StgMutArrPtrs + WDS(ind);
+  x = W_[p];
+  StgThunk_payload(z,1) = x;
+  W_[p] = y;
+
+  SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  len = StgMutArrPtrs_ptrs(arr);
+  I8[arr + SIZEOF_StgMutArrPtrs + WDS(len) + (ind >> MUT_ARR_PTRS_CARD_BITS )] = 1;
+
+  return (r);
+}
+
 /* SmallMutableArray s a -> Int# -> (a -> (a, b)) -> State# s -> (# State# s, b #) */
 atomicModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
   W_ p, z, x, y, r, h, len;
@@ -100,6 +139,42 @@ atomicModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
 #else
   W_[p] = y;
 #endif
+
+  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  return (r);
+}
+
+/* SmallMutableArray s a -> Int# -> (a -> (a, b)) -> State# s -> (# State# s, b #) */
+localAtomicModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
+  W_ p, z, x, y, r, h, len;
+
+  HP_CHK_GEN_TICKY(SIZE);
+
+  TICK_ALLOC_THUNK_2();
+  CCCS_ALLOC(THUNK_2_SIZE);
+  z = Hp - THUNK_2_SIZE + WDS(1);
+  SET_HDR(z, stg_ap_2_upd_info, CCCS);
+  LDV_RECORD_CREATE(z);
+  StgThunk_payload(z,0) = f;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  y = z - THUNK_1_SIZE;
+  SET_HDR(y, stg_sel_0_upd_info, CCCS);
+  LDV_RECORD_CREATE(y);
+  StgThunk_payload(y,0) = z;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  r = y - THUNK_1_SIZE;
+  SET_HDR(r, stg_sel_1_upd_info, CCCS);
+  LDV_RECORD_CREATE(r);
+  StgThunk_payload(r,0) = z;
+
+  p = arr + SIZEOF_StgSmallMutArrPtrs + WDS(ind);
+  x = W_[p];
+  StgThunk_payload(z,1) = x;
+  W_[p] = y;
 
   SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
   return (r);

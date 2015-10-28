@@ -4,6 +4,7 @@ module Concurrent.Capability.LocalArray
   , newLocalArray
   , readLocalArray
   , writeLocalArray
+  , atomicModifyLocalArray
   ) where
 
 import Concurrent.Primitive
@@ -49,3 +50,9 @@ writeLocalArray :: MonadPrimIO m => LocalArray a -> Int -> a -> m ()
 writeLocalArray (LocalArray _ o arr) i a = do
   j <- currentCapability
   writeArray arr ((o*j)+i) a
+
+-- | This is safely atomic, despite the lack of CAS.
+atomicModifyLocalArray :: MonadPrimIO m => LocalArray a -> Int -> (a -> (a, b)) -> m b
+atomicModifyLocalArray (LocalArray _ o arr) i f = do
+  j <- currentCapability
+  localAtomicModifyArray arr ((o*j)+i) f

@@ -11,6 +11,8 @@ module Concurrent.Primitive.Array
   , casArray
   , atomicModifyArray
   , atomicModifyArray'
+  , localAtomicModifyArray
+  , localAtomicModifyArray'
   -- * ByteArray Primitives
 
   , sizeOfByteArray
@@ -61,6 +63,19 @@ atomicModifyArray' m i f = primST $ do
     case f a of
       v@(a',_) -> a' `seq` v
   b `seq` return b
+
+foreign import prim "localAtomicModifyArrayzh" localAtomicModifyArray# :: MutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any #)
+
+localAtomicModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
+localAtomicModifyArray (MutableArray m) (I# i) f = primitive $ \s -> unsafeCoerce# localAtomicModifyArray# m i f s
+
+localAtomicModifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
+localAtomicModifyArray' m i f = primST $ do
+  b <- localAtomicModifyArray m i $ \a ->
+    case f a of
+      v@(a',_) -> a' `seq` v
+  b `seq` return b
+
 
 -- foreign import prim "atomicModifySmallArrayzh" atomicModifySmallArray# :: SmallMutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any #)
 -- atomicModifySmallArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
