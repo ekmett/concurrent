@@ -4,7 +4,7 @@
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE GHCForeignImportPrim #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
-module Concurrent.Internal.Thread
+module Concurrent.Thread
   ( withCapability
   , currentThread
   , currentCapability
