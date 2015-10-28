@@ -1,0 +1,22 @@
+#include <Cmm.h>
+
+pinThreadzh() {
+  W_ locked, flags, cap;
+  flags  = TO_W_(StgTSO_flags(CurrentTSO));
+
+  if (flags & TSO_LOCKED != 0) {
+    locked = 1;
+  } else {
+    locked = 0;
+    StgTSO_flags(CurrentTSO) = %lobits32(flags | TSO_LOCKED);
+  }
+
+  cap = TO_W_(Capability_no(StgTSO_cap(tso)));
+
+  return (locked, cap);
+}
+
+unpinThreadzh() {
+  StgTSO_flags(CurrentTSO) = %lobits32(TO_W_(StgTSO_flags(CurrentTSO)) & (~TSO_LOCKED));
+  return ();
+}

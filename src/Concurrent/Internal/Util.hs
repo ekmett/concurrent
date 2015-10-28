@@ -3,7 +3,11 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
-module Concurrent.Internal.Util where
+module Concurrent.Internal.Util
+  ( forN_
+  , primIO
+  , rawThreadId
+  ) where
 
 import Control.Monad.Primitive
 import Foreign.C.Types
