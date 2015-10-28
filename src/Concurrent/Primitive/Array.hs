@@ -1,7 +1,37 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
-module Concurrent.Primitive.Array where
+{-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+module Concurrent.Primitive.Array
+  (
+  -- * Array Primitives
+    sizeofArray
+  , sizeofMutableArray
+  , casArray
+  , atomicModifyArray
+  , atomicModifyArray'
+  -- * ByteArray Primitives
 
+  , sizeOfByteArray
+  , sizeOfMutableByteArray
+  , casIntArray
+  , atomicReadIntArray
+  , atomicWriteIntArray
+  , fetchAddIntArray
+  , fetchSubIntArray
+  , fetchAndIntArray
+  , fetchNandIntArray
+  , fetchOrIntArray
+  , fetchXorIntArray
+
+  -- * Prefetching
+  , prefetchByteArray0, prefetchByteArray1, prefetchByteArray2, prefetchByteArray3
+  , prefetchMutableByteArray0, prefetchMutableByteArray1, prefetchMutableByteArray2, prefetchMutableByteArray3
+  , prefetchValue0, prefetchValue1, prefetchValue2, prefetchValue3
+  ) where
+
+import Concurrent.Primitive.Class
 import Control.Monad.Primitive
 import Data.Primitive
 import GHC.Exts
@@ -19,6 +49,22 @@ sizeofMutableArray (MutableArray m) = I# (sizeofMutableArray# m)
 casArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> a -> a -> m (Int, a)
 casArray (MutableArray m) (I# i) x y = primitive $ \s -> case casArray# m i x y s of
   (# s', i', z #) -> (# s', (I# i', z) #)
+
+foreign import prim "atomicModifyArrayzh" atomicModifyArray# :: MutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any #)
+
+atomicModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
+atomicModifyArray (MutableArray m) (I# i) f = primitive $ \s -> unsafeCoerce# atomicModifyArray# m i f s
+
+atomicModifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
+atomicModifyArray' m i f = primST $ do
+  b <- atomicModifyArray m i $ \a ->
+    case f a of
+      v@(a',_) -> a' `seq` v
+  b `seq` return b
+
+-- foreign import prim "atomicModifySmallArrayzh" atomicModifySmallArray# :: SmallMutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any #)
+-- atomicModifySmallArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
+-- atomicModifySmallArray (SmallMutableArray m) (I# i) f = primitive $ \s -> unsafeCoerce# atomicModifySmallArray# m i f s
 
 --------------------------------------------------------------------------------
 -- * ByteArray Primitives

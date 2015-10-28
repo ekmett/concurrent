@@ -1,0 +1,106 @@
+#include <Cmm.h>
+
+#if MIN_UPD_SIZE > 1
+#define THUNK_1_SIZE (SIZEOF_StgThunkHeader + WDS(MIN_UPD_SIZE))
+#define TICK_ALLOC_THUNK_1() TICK_ALLOC_UP_THK(WDS(1),WDS(MIN_UPD_SIZE-1))
+#else
+#define THUNK_1_SIZE (SIZEOF_StgThunkHeader + WDS(1))
+#define TICK_ALLOC_THUNK_1() TICK_ALLOC_UP_THK(WDS(1),0)
+#endif
+
+#if MIN_UPD_SIZE > 2
+#define THUNK_2_SIZE (SIZEOF_StgThunkHeader + WDS(MIN_UPD_SIZE))
+#define TICK_ALLOC_THUNK_2() TICK_ALLOC_UP_THK(WDS(2),WDS(MIN_UPD_SIZE-2))
+#else
+#define THUNK_2_SIZE (SIZEOF_StgThunkHeader + WDS(2))
+#define TICK_ALLOC_THUNK_2() TICK_ALLOC_UP_THK(WDS(2),0)
+#endif
+
+#define SIZE (THUNK_2_SIZE + THUNK_1_SIZE + THUNK_1_SIZE)
+
+/* MutableArray s a -> Int# -> (a -> (a, b)) -> State# s -> (# State# s, b #) */
+atomicModifyArrayzh (gcptr arr, W_ ind, gcptr f) {
+  W_ p, z, x, y, r, h, len;
+
+  HP_CHK_GEN_TICKY(SIZE);
+
+  TICK_ALLOC_THUNK_2();
+  CCCS_ALLOC(THUNK_2_SIZE);
+  z = Hp - THUNK_2_SIZE + WDS(1);
+  SET_HDR(z, stg_ap_2_upd_info, CCCS);
+  LDV_RECORD_CREATE(z);
+  StgThunk_payload(z,0) = f;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  y = z - THUNK_1_SIZE;
+  SET_HDR(y, stg_sel_0_upd_info, CCCS);
+  LDV_RECORD_CREATE(y);
+  StgThunk_payload(y,0) = z;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  r = y - THUNK_1_SIZE;
+  SET_HDR(r, stg_sel_1_upd_info, CCCS);
+  LDV_RECORD_CREATE(r);
+  StgThunk_payload(r,0) = z;
+
+ retry:
+  p = arr + SIZEOF_StgMutArrPtrs + WDS(ind);
+  x = W_[p];
+  StgThunk_payload(z,1) = x;
+#ifdef THREADED_RTS
+  (h) = ccall cas(p, x, y);
+  if (h != x) { goto retry; }
+#else
+  W_[p] = y;
+#endif
+
+  SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  len = StgMutArrPtrs_ptrs(arr);
+  I8[arr + SIZEOF_StgMutArrPtrs + WDS(len) + (ind >> MUT_ARR_PTRS_CARD_BITS )] = 1;
+
+  return (r);
+}
+
+/* SmallMutableArray s a -> Int# -> (a -> (a, b)) -> State# s -> (# State# s, b #) */
+atomicModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
+  W_ p, z, x, y, r, h, len;
+
+  HP_CHK_GEN_TICKY(SIZE);
+
+  TICK_ALLOC_THUNK_2();
+  CCCS_ALLOC(THUNK_2_SIZE);
+  z = Hp - THUNK_2_SIZE + WDS(1);
+  SET_HDR(z, stg_ap_2_upd_info, CCCS);
+  LDV_RECORD_CREATE(z);
+  StgThunk_payload(z,0) = f;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  y = z - THUNK_1_SIZE;
+  SET_HDR(y, stg_sel_0_upd_info, CCCS);
+  LDV_RECORD_CREATE(y);
+  StgThunk_payload(y,0) = z;
+
+  TICK_ALLOC_THUNK_1();
+  CCCS_ALLOC(THUNK_1_SIZE);
+  r = y - THUNK_1_SIZE;
+  SET_HDR(r, stg_sel_1_upd_info, CCCS);
+  LDV_RECORD_CREATE(r);
+  StgThunk_payload(r,0) = z;
+
+ retry:
+  p = arr + SIZEOF_StgSmallMutArrPtrs + WDS(ind);
+  x = W_[p];
+  StgThunk_payload(z,1) = x;
+#ifdef THREADED_RTS
+  (h) = ccall cas(p, x, y);
+  if (h != x) { goto retry; }
+#else
+  W_[p] = y;
+#endif
+
+  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  return (r);
+}
