@@ -56,7 +56,12 @@ library
     Concurrent.Thread
 
   ghc-options: -Wall -fwarn-tabs
-  c-sources: cbits/thread.cmm cbits/array.cmm
+
+  c-sources:
+    cbits/array.cmm
+    cbits/thread.cmm
+    cbits/mvar.cmm
+
   hs-source-dirs: src
   default-language: Haskell2010
 
