@@ -21,11 +21,16 @@ import Foreign.Storable as S
 
 -- | Capability-Local variables with cache-line spacing
 --
--- You should really only access these from code that is pinned to a given capability, or when you just don't care which bin the result falls into.
+-- You can _only_ safely access these from code that is pinned to a given capability. Otherwise you might get
+-- preempted between when we check the capability # and index into the array. At which point the invariants
+-- that ensure that we can operate without a compare-and-swap even on the threaded RTS cease to hold.
+
 data LocalArray a = LocalArray
   {-# UNPACK #-} !Int -- logical array size
   {-# UNPACK #-} !Int -- cache-line-expanded array size per capability
   {-# UNPACK #-} !(SmallMutableArray RealWorld a) -- actual array
+
+-- | I use a @SmallArray@ to avoid false sharing in the cache lines of the card marking table.
 
 instance Eq (LocalArray a) where
   LocalArray _ _ x == LocalArray _ _ y = sameSmallMutableArray x y
