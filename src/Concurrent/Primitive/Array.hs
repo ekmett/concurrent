@@ -3,6 +3,7 @@
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE GHCForeignImportPrim #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+
 module Concurrent.Primitive.Array
   (
   -- * Array Primitives
@@ -11,8 +12,19 @@ module Concurrent.Primitive.Array
   , casArray
   , atomicModifyArray
   , atomicModifyArray'
+  , modifyArray
+  , modifyArray'
+  , fetchModifyArray
+  , fetchModifyArray'
+
+  -- * Capability-local array manipulation primitives
   , localAtomicModifyArray
   , localAtomicModifyArray'
+  , localModifyArray
+  , localModifyArray'
+  , localFetchModifyArray
+  , localFetchModifyArray'
+
   -- * ByteArray Primitives
 
   , sizeOfByteArray
@@ -33,6 +45,7 @@ module Concurrent.Primitive.Array
   , prefetchValue0, prefetchValue1, prefetchValue2, prefetchValue3
   ) where
 
+import Control.Exception (evaluate)
 import Concurrent.Primitive.Class
 import Control.Monad.Primitive
 import Data.Primitive
@@ -54,8 +67,11 @@ casArray (MutableArray m) (I# i) x y = primitive $ \s -> case casArray# m i x y 
 
 foreign import prim "atomicModifyArrayzh" atomicModifyArray# :: MutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any #)
 
+atomicModifyArray## :: MutableArray# s a -> Int# -> (a -> (a, b)) -> State# s -> (# State# s, b #)
+atomicModifyArray## = unsafeCoerce# atomicModifyArray#
+
 atomicModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
-atomicModifyArray (MutableArray m) (I# i) f = primitive $ \s -> unsafeCoerce# atomicModifyArray# m i f s
+atomicModifyArray (MutableArray m) (I# i) f = primitive $ \s -> atomicModifyArray## m i f s
 
 atomicModifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
 atomicModifyArray' m i f = primST $ do
@@ -66,16 +82,94 @@ atomicModifyArray' m i f = primST $ do
 
 foreign import prim "localAtomicModifyArrayzh" localAtomicModifyArray# :: MutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any #)
 
-localAtomicModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
-localAtomicModifyArray (MutableArray m) (I# i) f = primitive $ \s -> unsafeCoerce# localAtomicModifyArray# m i f s
+localAtomicModifyArray## :: MutableArray# s a -> Int# -> (a -> (a, b)) -> State# s -> (# State# s, b #)
+localAtomicModifyArray## = unsafeCoerce# localAtomicModifyArray#
 
+-- | Modify the contents of a position in an array in a manner that at least can't be preempted another thread in the current capability.
+localAtomicModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
+localAtomicModifyArray (MutableArray m) (I# i) f = primitive $ \s -> localAtomicModifyArray## m i f s
+
+-- | Modify the contents of a position in an array strictly in a manner that at least can't be preempted another thread in the current capability.
 localAtomicModifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
 localAtomicModifyArray' m i f = primST $ do
-  b <- localAtomicModifyArray m i $ \a ->
-    case f a of
-      v@(a',_) -> a' `seq` v
-  b `seq` return b
+  b <- localAtomicModifyArray m i $ \a -> case f a of v@(a',_) -> a' `seq` v
+  unsafePrimToPrim (evaluate b)
 
+foreign import prim "modifyArrayzh" modifyArray# :: MutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any, Any #)
+
+modifyArray## :: MutableArray# s a -> Int# -> (a -> a) -> State# s -> (# State# s, a, a #)
+modifyArray## = unsafeCoerce# modifyArray#
+
+-- |
+-- Modify the contents of an array at a given position. Return the new result
+--
+-- @
+-- 'modifyArray' m i f = 'atomicModifyArray' m i $ \a -> let b = f a in (b, b)
+-- @
+modifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+modifyArray (MutableArray m) (I# i) f = primitive $ \s -> case modifyArray## m i f s of
+  (# s', _, a #) -> (# s', a #)
+
+-- | Modify the contents of an array at a given position strictly. Return the new result.
+--
+-- Can this be smarter? e.g. start it off already as a blackhole we appear to be evaluating, putting frames on the stack, etc.
+-- That would avoid anybody ever getting and seeing the unevaluated closure.
+modifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+modifyArray' m i f = primST $ do
+  a <- modifyArray m i f
+  unsafePrimToPrim (evaluate a)
+
+-- | Modify the contents of an array at a given position. Return the old result.
+fetchModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+fetchModifyArray (MutableArray m) (I# i) f = primitive $ \s -> case modifyArray## m i f s of
+  (# s', a, _ #) -> (# s', a #)
+
+-- | Modify the contents of an array at a given position strictly. Return the old result.
+fetchModifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+fetchModifyArray' (MutableArray m) (I# i) f = primitive $ \s -> case modifyArray## m i f s of
+  (# s', a,  b #) -> case seq# b s' of
+     (# s'' , _ #) -> (# s'', a #)
+
+foreign import prim "localModifyArrayzh" localModifyArray# :: MutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any, Any #)
+
+localModifyArray## :: MutableArray# s a -> Int# -> (a -> a) -> State# s -> (# State# s, a, a #)
+localModifyArray## = unsafeCoerce# localModifyArray#
+
+-- |
+-- Modify the contents of an array at a given position. Return the new result.
+--
+-- Logically,
+--
+-- @
+-- 'localModifyArray' m i f = 'localAtomicModifyArray' m i $ \a -> let b = f a in (b, b)
+-- @
+--
+-- but it is a bit more efficient.
+localModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+localModifyArray (MutableArray m) (I# i) f = primitive $ \s -> case localModifyArray## m i f s of
+  (# s', _, a #) -> (# s', a #)
+
+-- | Modify the contents of an array at a given position strictly. Return the new result.
+--
+-- Can this be smarter? e.g. start it off already as a blackhole we appear to be evaluating, putting frames on the stack, etc.
+-- That would avoid anybody ever getting and seeing the unevaluated closure.
+localModifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+localModifyArray' m i f = primST $ do
+  a <- localModifyArray m i f
+  unsafePrimToPrim (evaluate a)
+
+-- | Modify the contents of an array at a given position. Return the old result.
+localFetchModifyArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+localFetchModifyArray (MutableArray m) (I# i) f = primitive $ \s -> case localModifyArray## m i f s of
+  (# s', a, _ #) -> (# s', a #)
+
+-- | Modify the contents of an array at a given position strictly. Return the old result.
+localFetchModifyArray' :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> a) -> m a
+localFetchModifyArray' (MutableArray m) (I# i) f = primitive $ \s -> case localModifyArray## m i f s of
+  (# s', a,  b #) -> case seq# b s' of
+     (# s'' , _ #) -> (# s'', a #)
+
+-- TODO: Small Array equivalents
 
 -- foreign import prim "atomicModifySmallArrayzh" atomicModifySmallArray# :: SmallMutableArray# s a -> Int# -> Any -> State# s -> (#State# s, Any #)
 -- atomicModifySmallArray :: PrimMonad m => MutableArray (PrimState m) a -> Int -> (a -> (a, b)) -> m b
