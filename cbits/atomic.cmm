@@ -56,7 +56,9 @@ atomicModifyArrayzh (gcptr arr, W_ ind, gcptr f) {
   W_[p] = y;
 #endif
 
-  SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
   len = StgMutArrPtrs_ptrs(arr);
   I8[arr + SIZEOF_StgMutArrPtrs + WDS(len) + (ind >> MUT_ARR_PTRS_CARD_BITS )] = 1;
 
@@ -95,7 +97,9 @@ localAtomicModifyArrayzh (gcptr arr, W_ ind, gcptr f) {
   StgThunk_payload(z,1) = x;
   W_[p] = y;
 
-  SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
   len = StgMutArrPtrs_ptrs(arr);
   I8[arr + SIZEOF_StgMutArrPtrs + WDS(len) + (ind >> MUT_ARR_PTRS_CARD_BITS )] = 1;
 
@@ -126,7 +130,9 @@ modifyArrayzh (gcptr arr, W_ ind, gcptr f) {
   W_[p] = z;
 #endif
 
-  SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
   len = StgMutArrPtrs_ptrs(arr);
   I8[arr + SIZEOF_StgMutArrPtrs + WDS(len) + (ind >> MUT_ARR_PTRS_CARD_BITS )] = 1;
 
@@ -151,7 +157,9 @@ localModifyArrayzh (gcptr arr, W_ ind, gcptr f) {
   StgThunk_payload(z,1) = x;
   W_[p] = z;
 
-  SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
   len = StgMutArrPtrs_ptrs(arr);
   I8[arr + SIZEOF_StgMutArrPtrs + WDS(len) + (ind >> MUT_ARR_PTRS_CARD_BITS )] = 1;
 
@@ -196,7 +204,9 @@ atomicModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
   W_[p] = y;
 #endif
 
-  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_SMALL_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
   return (r);
 }
 
@@ -232,7 +242,9 @@ localAtomicModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
   StgThunk_payload(z,1) = x;
   W_[p] = y;
 
-  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_SMALL_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
   return (r);
 }
 
@@ -260,7 +272,9 @@ modifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
   W_[p] = z;
 #endif
 
-  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_SMALL_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
 
   return (x,z);
 }
@@ -283,7 +297,9 @@ localModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
   StgThunk_payload(z,1) = x;
   W_[p] = z;
 
-  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  if (GET_INFO(arr) == stg_SMALL_MUT_ARR_PTRS_CLEAN_info) {
+    SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+  }
 
   return (x, z);
 }
