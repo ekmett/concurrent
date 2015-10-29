@@ -35,6 +35,7 @@ library
   build-depends:
     atomic-primops >= 0.7 && < 0.9,
     base >= 4.8 && < 5,
+    deepseq,
     exceptions,
     ghc-prim,
     primitive,
@@ -51,6 +52,7 @@ library
     Concurrent.Primitive.Array
     Concurrent.Primitive.Class
     Concurrent.Primitive.PrimRef
+    Concurrent.Primitive.SmallArray
     Concurrent.Thread
 
   ghc-options: -Wall -fwarn-tabs

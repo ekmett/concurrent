@@ -21,6 +21,8 @@ import Data.Primitive
 import Foreign.Storable as S
 
 -- | Capability-Local variables with cache-line spacing
+--
+-- You should really only access these from code that is pinned to a given capability, or when you just don't care which bin the result falls into.
 data LocalArray a = LocalArray
   {-# UNPACK #-} !Int -- logical array size
   {-# UNPACK #-} !Int -- cache-line-expanded array size per capability
