@@ -235,3 +235,56 @@ localAtomicModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
   SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
   return (r);
 }
+
+/* SmallMutableArray s a -> Int# -> (a -> a) -> State# s -> (# State# s, a #) */
+modifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
+  W_ p, z, x, h, len;
+
+  HP_CHK_GEN_TICKY(THUNK_2_SIZE);
+
+  TICK_ALLOC_THUNK_2();
+  CCCS_ALLOC(THUNK_2_SIZE);
+  z = Hp - THUNK_2_SIZE + WDS(1);
+  SET_HDR(z, stg_ap_2_upd_info, CCCS);
+  LDV_RECORD_CREATE(z);
+  StgThunk_payload(z,0) = f;
+
+ retry:
+  p = arr + SIZEOF_StgSmallMutArrPtrs + WDS(ind);
+  x = W_[p];
+  StgThunk_payload(z,1) = x;
+#ifdef THREADED_RTS
+  (h) = ccall cas(p, x, z);
+  if (h != x) { goto retry; }
+#else
+  W_[p] = z;
+#endif
+
+  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+
+  return (x,z);
+}
+
+/* SmallMutableArray s a -> Int# -> (a -> a) -> State# s -> (# State# s, a, a #) */
+localModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
+  W_ p, z, x, h, len;
+
+  HP_CHK_GEN_TICKY(THUNK_2_SIZE);
+
+  TICK_ALLOC_THUNK_2();
+  CCCS_ALLOC(THUNK_2_SIZE);
+  z = Hp - THUNK_2_SIZE + WDS(1);
+  SET_HDR(z, stg_ap_2_upd_info, CCCS);
+  LDV_RECORD_CREATE(z);
+  StgThunk_payload(z,0) = f;
+
+  p = arr + SIZEOF_StgSmallMutArrPtrs + WDS(ind);
+  x = W_[p];
+  StgThunk_payload(z,1) = x;
+  W_[p] = z;
+
+  SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+
+  return (x, z);
+}
+
