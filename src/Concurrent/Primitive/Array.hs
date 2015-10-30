@@ -176,7 +176,6 @@ module Concurrent.Primitive.Array
   , cloneSmallMutableArrayArray
   , sizeofSmallMutableArrayArray
   -- ** Reading
-{-
   , readArraySmallArray
   , readArrayArraySmallArray
   , readByteArraySmallArray
@@ -187,7 +186,6 @@ module Concurrent.Primitive.Array
   , readSmallMutableArraySmallArray
   , readSmallArrayArraySmallArray
   , readSmallMutableArrayArraySmallArray
--}
   -- ** Writing
 {-
   , writeArraySmallArray
@@ -1098,45 +1096,95 @@ cloneSmallMutableArrayArray (SmallMutableArrayArray arr#) (I# off#) (I# len#) = 
 
 indexArraySmallArray :: SmallArrayArray -> Int -> Array a
 indexArraySmallArray (SmallArrayArray a) (I# i) = Array (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexArraySmallArray #-}
 
 indexArrayArraySmallArray :: SmallArrayArray -> Int -> ArrayArray
 indexArrayArraySmallArray (SmallArrayArray a) (I# i) = ArrayArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexArrayArraySmallArray #-}
 
 indexByteArraySmallArray :: SmallArrayArray -> Int -> ByteArray
 indexByteArraySmallArray (SmallArrayArray a) (I# i) = ByteArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexByteArraySmallArray #-}
 
 indexMutableArraySmallArray :: SmallArrayArray -> Int -> MutableArray s a
 indexMutableArraySmallArray (SmallArrayArray a) (I# i) = MutableArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexMutableArraySmallArray #-}
 
 indexMutableArrayArraySmallArray :: SmallArrayArray -> Int -> MutableArrayArray s
 indexMutableArrayArraySmallArray (SmallArrayArray a) (I# i) = MutableArrayArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexMutableArrayArraySmallArray #-}
 
 indexMutableByteArraySmallArray :: SmallArrayArray -> Int -> MutableByteArray s
 indexMutableByteArraySmallArray (SmallArrayArray a) (I# i) = MutableByteArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexMutableByteArraySmallArray #-}
 
 indexSmallArraySmallArray :: SmallArrayArray -> Int -> SmallArray a
 indexSmallArraySmallArray (SmallArrayArray a) (I# i)  = SmallArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexSmallArraySmallArray #-}
 
 indexSmallMutableArraySmallArray :: SmallArrayArray -> Int -> SmallMutableArray s a
 indexSmallMutableArraySmallArray (SmallArrayArray a) (I# i)  = SmallMutableArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexSmallMutableArraySmallArray #-}
 
 indexSmallArrayArraySmallArray :: SmallArrayArray -> Int -> SmallArrayArray
 indexSmallArrayArraySmallArray (SmallArrayArray a) (I# i)  = SmallArrayArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexSmallArrayArraySmallArray #-}
 
 indexSmallMutableArrayArraySmallArray :: SmallArrayArray -> Int -> SmallMutableArrayArray s
 indexSmallMutableArrayArraySmallArray (SmallArrayArray a) (I# i)  = SmallMutableArrayArray (unsafeCoerce# indexSmallArray# a i)
+{-# INLINE indexSmallMutableArrayArraySmallArray #-}
+
+readArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m (Array a)
+readArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', Array a #)
+{-# INLINE readArraySmallArray #-}
+
+readArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m ArrayArray
+readArrayArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', ArrayArray a #)
+{-# INLINE readArrayArraySmallArray #-}
+
+readByteArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m ByteArray
+readByteArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', ByteArray a #)
+{-# INLINE readByteArraySmallArray #-}
+
+readMutableArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m (MutableArray s a)
+readMutableArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', MutableArray a #)
+{-# INLINE readMutableArraySmallArray #-}
+
+readMutableArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m (MutableArrayArray s)
+readMutableArrayArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', MutableArrayArray a #)
+{-# INLINE readMutableArrayArraySmallArray #-}
+
+readMutableByteArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m (MutableByteArray s)
+readMutableByteArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', MutableByteArray a #)
+{-# INLINE readMutableByteArraySmallArray #-}
+
+readSmallArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m (SmallArray a)
+readSmallArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', SmallArray a #)
+{-# INLINE readSmallArraySmallArray #-}
+
+readSmallMutableArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m (SmallMutableArray s a)
+readSmallMutableArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', SmallMutableArray a #)
+{-# INLINE readSmallMutableArraySmallArray #-}
+
+readSmallArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m SmallArrayArray
+readSmallArrayArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', SmallArrayArray a #)
+{-# INLINE readSmallArrayArraySmallArray #-}
+
+readSmallMutableArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> m (SmallMutableArrayArray s)
+readSmallMutableArrayArraySmallArray (SmallMutableArrayArray m) (I# i) = primitive $ \s -> case unsafeCoerce# readSmallArray# m i s of
+  (# s', a #) -> (# s', SmallMutableArrayArray a #)
+{-# INLINE readSmallMutableArrayArraySmallArray #-}
 
 {-
-  -- * MutableArraySmallArrays
-  -- ** Reading
-  , readArraySmallArray
-  , readArrayArraySmallArray
-  , readByteArraySmallArray
-  , readMutableArraySmallArray
-  , readMutableArrayArraySmallArray
-  , readMutableByteArraySmallArray
-  , readSmallArraySmallArray
-  , readSmallMutableArraySmallArray
   -- ** Writing
   , writeArraySmallArray
   , writeArrayArraySmallArray
