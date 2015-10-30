@@ -114,6 +114,8 @@ module Concurrent.Primitive.Array
   , newArrayArray
   , copyArrayArray
   , copyMutableArrayArray
+  , cloneArrayArray
+  , cloneMutableArrayArray
   , sizeofMutableArrayArray
   -- ** Reading
   , readArrayArray
@@ -133,6 +135,53 @@ module Concurrent.Primitive.Array
   , writeMutableByteArrayArray
   , writeSmallArrayArray
   , writeSmallMutableArrayArray
+
+  -- * SmallArrayArrays
+  , SmallArrayArray(..)
+  , unsafeFreezeSmallArrayArray
+  , unsafeThawSmallArrayArray
+  , sizeofSmallArrayArray
+  -- ** Indexing
+{-
+  , indexArraySmallArray
+  , indexArrayArraySmallArray
+  , indexByteArraySmallArray
+  , indexMutableArraySmallArray
+  , indexMutableArrayArraySmallArray
+  , indexMutableByteArraySmallArray
+  , indexSmallArraySmallArray
+  , indexSmallMutableArraySmallArray
+-}
+  -- * SmallMutableMutableArrayArrays
+  , SmallMutableArrayArray(..)
+  , newSmallArrayArray
+  , copySmallArrayArray
+  , copySmallMutableArrayArray
+  , cloneSmallArrayArray
+  , cloneSmallMutableArrayArray
+  , sizeofSmallMutableArrayArray
+  -- ** Reading
+{-
+  , readArraySmallArray
+  , readArrayArraySmallArray
+  , readByteArraySmallArray
+  , readMutableArraySmallArray
+  , readMutableArrayArraySmallArray
+  , readMutableByteArraySmallArray
+  , readSmallArraySmallArray
+  , readSmallMutableArraySmallArray
+-}
+  -- ** Writing
+{-
+  , writeArraySmallArray
+  , writeArrayArraySmallArray
+  , writeByteArraySmallArray
+  , writeMutableArraySmallArray
+  , writeMutableArrayArraySmallArray
+  , writeMutableByteArraySmallArray
+  , writeSmallArraySmallArray
+  , writeSmallMutableArraySmallArray
+-}
   ) where
 
 import Concurrent.Primitive.Class
@@ -378,15 +427,36 @@ unsafeThawArrayArray (ArrayArray a) = primitive $ \s -> case unsafeThawArrayArra
   (# s', m #) -> (# s', MutableArrayArray m #)
 {-# INLINE unsafeThawArrayArray #-}
 
-copyArrayArray :: MonadPrim s m => ArrayArray -> Int -> MutableArrayArray s -> Int -> Int -> m ()
-copyArrayArray (ArrayArray a) (I# i) (MutableArrayArray m) (I# j) (I# k) = primitive_ $ \s ->
-  copyArrayArray# a i m j k s
+copyArrayArray :: MonadPrim s m => MutableArrayArray s -> Int -> ArrayArray -> Int -> Int -> m ()
+copyArrayArray (MutableArrayArray m) (I# i) (ArrayArray a) (I# j) (I# k) = primitive_ $ \s -> copyArrayArray# a j m i k s
 {-# INLINE copyArrayArray #-}
 
 copyMutableArrayArray :: MonadPrim s m => MutableArrayArray s -> Int -> MutableArrayArray s -> Int -> Int -> m ()
-copyMutableArrayArray (MutableArrayArray m) (I# i) (MutableArrayArray n) (I# j) (I# k) = primitive_ $ \s ->
-  copyMutableArrayArray# m i n j k s
+copyMutableArrayArray (MutableArrayArray m) (I# i) (MutableArrayArray n) (I# j) (I# k) = primitive_ $ \s -> copyMutableArrayArray# n j m i k s
 {-# INLINE copyMutableArrayArray #-}
+
+-- | Return a newly allocated ArrayArray with the specified subrange of the
+-- provided ArrayArray. The provided ArrayArray should contain the full subrange
+-- specified by the two Ints, but this is not checked.
+cloneArrayArray :: ArrayArray -- ^ source array
+           -> Int     -- ^ offset into destination array
+           -> Int     -- ^ number of elements to copy
+           -> ArrayArray
+cloneArrayArray (ArrayArray arr#) (I# off#) (I# len#) = case unsafeCoerce# cloneArray# arr# off# len# of
+  arr'# -> ArrayArray arr'#
+{-# INLINE cloneArrayArray #-}
+
+-- | Return a newly allocated MutableArrayArray. with the specified subrange of
+-- the provided MutableArrayArray. The provided MutableArrayArray should contain the
+-- full subrange specified by the two Ints, but this is not checked.
+cloneMutableArrayArray :: PrimMonad m
+        => MutableArrayArray (PrimState m) -- ^ source array
+        -> Int                          -- ^ offset into destination array
+        -> Int                          -- ^ number of elements to copy
+        -> m (MutableArrayArray (PrimState m))
+cloneMutableArrayArray (MutableArrayArray arr#) (I# off#) (I# len#) = primitive $ \s# -> case unsafeCoerce# cloneMutableArray# arr# off# len# s# of
+  (# s'#, arr'# #) -> (# s'#, MutableArrayArray arr'# #)
+{-# INLINE cloneMutableArrayArray #-}
 
 indexArrayArray :: ArrayArray -> Int -> Array a
 indexArrayArray (ArrayArray m) (I# i) = Array (unsafeCoerce# indexArrayArrayArray# m i)
@@ -615,9 +685,9 @@ cloneSmallArray :: SmallArray a -- ^ source array
            -> Int     -- ^ offset into destination array
            -> Int     -- ^ number of elements to copy
            -> SmallArray a
-{-# INLINE cloneSmallArray #-}
 cloneSmallArray (SmallArray arr#) (I# off#) (I# len#)
   = case cloneSmallArray# arr# off# len# of arr'# -> SmallArray arr'#
+{-# INLINE cloneSmallArray #-}
 
 -- | Return a newly allocated SmallMutableArray. with the specified subrange of
 -- the provided SmallMutableArray. The provided SmallMutableArray should contain the
@@ -905,3 +975,110 @@ localFetchModifySmallArray' :: PrimMonad m => SmallMutableArray (PrimState m) a 
 localFetchModifySmallArray' (SmallMutableArray m) (I# i) f = primitive $ \s -> case localModifySmallArray## m i f s of
   (# s', a,  b #) -> case seq# b s' of
      (# s'' , _ #) -> (# s'', a #)
+
+data SmallArrayArray = SmallArrayArray (SmallArray# Any)
+
+foreign import prim "newSmallArrayArrayzh" newSmallArrayArray# :: Int# -> State# s -> (# State# s, SmallMutableArray# s a #)
+
+newSmallArrayArray :: PrimMonad m => Int -> m (SmallMutableArrayArray (PrimState m))
+newSmallArrayArray (I# i) = primitive $ \s -> case newSmallArrayArray# i s of
+  (# s', m #) -> (# s', SmallMutableArrayArray m #)
+
+sizeofSmallArrayArray :: SmallArrayArray -> Int
+sizeofSmallArrayArray (SmallArrayArray m) = I# (sizeofSmallArray# m) 
+
+data SmallMutableArrayArray s = SmallMutableArrayArray (SmallMutableArray# s Any)
+
+sizeofSmallMutableArrayArray :: SmallMutableArrayArray s -> Int
+sizeofSmallMutableArrayArray (SmallMutableArrayArray m) = I# (sizeofSmallMutableArray# m) 
+
+instance Eq (SmallMutableArrayArray s) where
+  SmallMutableArrayArray m == SmallMutableArrayArray n = isTrue# (sameSmallMutableArray# m n)
+
+unsafeFreezeSmallArrayArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> m SmallArrayArray
+unsafeFreezeSmallArrayArray (SmallMutableArrayArray m) = primitive $ \ s -> case unsafeFreezeSmallArray# m s of
+  (# s', a #) -> (# s', SmallArrayArray a #)
+
+unsafeThawSmallArrayArray :: PrimMonad m => SmallArrayArray -> m (SmallMutableArrayArray (PrimState m))
+unsafeThawSmallArrayArray (SmallArrayArray a) = primitive $ \s -> case unsafeThawSmallArray# a s of
+  (# s', m #) -> (# s', SmallMutableArrayArray m #)
+
+-- | Copy a slice of an immutable array to a mutable array.
+copySmallArrayArray :: PrimMonad m
+          => SmallMutableArrayArray (PrimState m)    -- ^ destination array
+          -> Int                             -- ^ offset into destination array
+          -> SmallArrayArray                         -- ^ source array
+          -> Int                             -- ^ offset into source array
+          -> Int                             -- ^ number of elements to copy
+          -> m ()
+{-# INLINE copySmallArrayArray #-}
+copySmallArrayArray (SmallMutableArrayArray dst#) (I# doff#) (SmallArrayArray src#) (I# soff#) (I# len#)
+  = primitive_ (copySmallArray# src# soff# dst# doff# len#)
+
+-- | Copy a slice of a mutable array to another array. The two arrays may
+-- not be the same.
+copySmallMutableArrayArray :: PrimMonad m
+          => SmallMutableArrayArray (PrimState m)    -- ^ destination array
+          -> Int                             -- ^ offset into destination array
+          -> SmallMutableArrayArray (PrimState m)    -- ^ source array
+          -> Int                             -- ^ offset into source array
+          -> Int                             -- ^ number of elements to copy
+          -> m ()
+{-# INLINE copySmallMutableArrayArray #-}
+copySmallMutableArrayArray (SmallMutableArrayArray dst#) (I# doff#) (SmallMutableArrayArray src#) (I# soff#) (I# len#)
+  = primitive_ (copySmallMutableArray# src# soff# dst# doff# len#)
+
+-- | Return a newly allocated SmallArray with the specified subrange of the
+-- provided SmallArray. The provided SmallArray should contain the full subrange
+-- specified by the two Ints, but this is not checked.
+cloneSmallArrayArray :: SmallArrayArray -- ^ source array
+           -> Int     -- ^ offset into destination array
+           -> Int     -- ^ number of elements to copy
+           -> SmallArrayArray
+{-# INLINE cloneSmallArrayArray #-}
+cloneSmallArrayArray (SmallArrayArray arr#) (I# off#) (I# len#) = case cloneSmallArray# arr# off# len# of
+  arr'# -> SmallArrayArray arr'#
+
+-- | Return a newly allocated SmallMutableArray. with the specified subrange of
+-- the provided SmallMutableArray. The provided SmallMutableArray should contain the
+-- full subrange specified by the two Ints, but this is not checked.
+cloneSmallMutableArrayArray :: PrimMonad m
+        => SmallMutableArrayArray (PrimState m) -- ^ source array
+        -> Int                          -- ^ offset into destination array
+        -> Int                          -- ^ number of elements to copy
+        -> m (SmallMutableArrayArray (PrimState m))
+cloneSmallMutableArrayArray (SmallMutableArrayArray arr#) (I# off#) (I# len#) = primitive $ \s# -> case cloneSmallMutableArray# arr# off# len# s# of
+  (# s'#, arr'# #) -> (# s'#, SmallMutableArrayArray arr'# #)
+{-# INLINE cloneSmallMutableArrayArray #-}
+
+{-
+  -- * SmallArrayArrays
+  -- ** Indexing
+  , indexArraySmallArray
+  , indexArrayArraySmallArray
+  , indexByteArraySmallArray
+  , indexMutableArraySmallArray
+  , indexMutableArrayArraySmallArray
+  , indexMutableByteArraySmallArray
+  , indexSmallArraySmallArray
+  , indexSmallMutableArraySmallArray
+  -- * MutableArraySmallArrays
+  -- ** Reading
+  , readArraySmallArray
+  , readArrayArraySmallArray
+  , readByteArraySmallArray
+  , readMutableArraySmallArray
+  , readMutableArrayArraySmallArray
+  , readMutableByteArraySmallArray
+  , readSmallArraySmallArray
+  , readSmallMutableArraySmallArray
+  -- ** Writing
+  , writeArraySmallArray
+  , writeArrayArraySmallArray
+  , writeByteArraySmallArray
+  , writeMutableArraySmallArray
+  , writeMutableArrayArraySmallArray
+  , writeMutableByteArraySmallArray
+  , writeSmallArraySmallArray
+  , writeSmallMutableArraySmallArray
+-}

@@ -304,3 +304,28 @@ localModifySmallArrayzh (gcptr arr, W_ ind, gcptr f) {
   return (x, z);
 }
 
+newSmallArrayArrayzh ( W_ n /* words */)
+{
+    W_ words, size, p;
+    gcptr arr;
+
+    again: MAYBE_GC(again);
+
+    words = BYTES_TO_WDS(SIZEOF_StgSmallMutArrPtrs) + n;
+    ("ptr" arr) = ccall allocate(MyCapability() "ptr",words);
+    TICK_ALLOC_PRIM(SIZEOF_StgSmallMutArrPtrs, WDS(n), 0);
+
+    SET_HDR(arr, stg_SMALL_MUT_ARR_PTRS_DIRTY_info, CCCS);
+    StgSmallMutArrPtrs_ptrs(arr) = n;
+
+    // Initialise all elements of the the array with the value in R2
+    p = arr + SIZEOF_StgSmallMutArrPtrs;
+  for:
+    if (p < arr + SIZEOF_StgSmallMutArrPtrs + WDS(n)) {
+        W_[p] = arr;
+        p = p + WDS(1);
+        goto for;
+    }
+
+    return (arr);
+}
