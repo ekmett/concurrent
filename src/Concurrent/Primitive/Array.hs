@@ -59,9 +59,18 @@ module Concurrent.Primitive.Array
   , fetchXorIntArray
 
   -- * Prefetching
-  , prefetchByteArray0, prefetchByteArray1, prefetchByteArray2, prefetchByteArray3
-  , prefetchMutableByteArray0, prefetchMutableByteArray1, prefetchMutableByteArray2, prefetchMutableByteArray3
-  , prefetchValue0, prefetchValue1, prefetchValue2, prefetchValue3
+  , prefetchByteArray0
+  , prefetchByteArray1
+  , prefetchByteArray2
+  , prefetchByteArray3
+  , prefetchMutableByteArray0
+  , prefetchMutableByteArray1
+  , prefetchMutableByteArray2
+  , prefetchMutableByteArray3
+  , prefetchValue0
+  , prefetchValue1
+  , prefetchValue2
+  , prefetchValue3
 
   -- * SmallArrays
   , SmallArray(..)
