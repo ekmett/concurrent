@@ -39,9 +39,11 @@ library
     exceptions,
     ghc-prim,
     primitive,
+    tagged,
     transformers >= 0.4 && < 0.5
 
   exposed-modules:
+    Concurrent.Capability.Pinned
     Concurrent.Capability.LocalArray
     Concurrent.Exception
     Concurrent.Internal.Backoff
