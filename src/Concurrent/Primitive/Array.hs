@@ -187,7 +187,6 @@ module Concurrent.Primitive.Array
   , readSmallArrayArraySmallArray
   , readSmallMutableArrayArraySmallArray
   -- ** Writing
-{-
   , writeArraySmallArray
   , writeArrayArraySmallArray
   , writeByteArraySmallArray
@@ -198,7 +197,6 @@ module Concurrent.Primitive.Array
   , writeSmallMutableArraySmallArray
   , writeSmallArrayArraySmallArray
   , writeSmallMutableArrayArraySmallArray
--}
   ) where
 
 import Concurrent.Primitive.Class
@@ -1184,14 +1182,42 @@ readSmallMutableArrayArraySmallArray (SmallMutableArrayArray m) (I# i) = primiti
   (# s', a #) -> (# s', SmallMutableArrayArray a #)
 {-# INLINE readSmallMutableArrayArraySmallArray #-}
 
-{-
-  -- ** Writing
-  , writeArraySmallArray
-  , writeArrayArraySmallArray
-  , writeByteArraySmallArray
-  , writeMutableArraySmallArray
-  , writeMutableArrayArraySmallArray
-  , writeMutableByteArraySmallArray
-  , writeSmallArraySmallArray
-  , writeSmallMutableArraySmallArray
--}
+writeArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> Array a -> m ()
+writeArraySmallArray (SmallMutableArrayArray m) (I# i) (Array o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeArraySmallArray #-}
+
+writeArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> ArrayArray -> m ()
+writeArrayArraySmallArray (SmallMutableArrayArray m) (I# i) (ArrayArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeArrayArraySmallArray #-}
+
+writeByteArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> ByteArray -> m ()
+writeByteArraySmallArray (SmallMutableArrayArray m) (I# i) (ByteArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeByteArraySmallArray #-}
+
+writeMutableArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> MutableArray s a -> m ()
+writeMutableArraySmallArray (SmallMutableArrayArray m) (I# i) (MutableArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeMutableArraySmallArray #-}
+
+writeMutableArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> MutableArrayArray s -> m ()
+writeMutableArrayArraySmallArray (SmallMutableArrayArray m) (I# i) (MutableArrayArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeMutableArrayArraySmallArray #-}
+
+writeMutableByteArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> MutableByteArray s -> m ()
+writeMutableByteArraySmallArray (SmallMutableArrayArray m) (I# i) (MutableByteArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeMutableByteArraySmallArray #-}
+
+writeSmallArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> SmallArray a -> m ()
+writeSmallArraySmallArray (SmallMutableArrayArray m) (I# i) (SmallArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeSmallArraySmallArray #-}
+
+writeSmallMutableArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> SmallMutableArray s a -> m ()
+writeSmallMutableArraySmallArray (SmallMutableArrayArray m) (I# i) (SmallMutableArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeSmallMutableArraySmallArray #-}
+
+writeSmallArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> SmallArrayArray -> m ()
+writeSmallArrayArraySmallArray (SmallMutableArrayArray m) (I# i) (SmallArrayArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeSmallArrayArraySmallArray #-}
+
+writeSmallMutableArrayArraySmallArray :: PrimMonad m => SmallMutableArrayArray (PrimState m) -> Int -> SmallMutableArrayArray s -> m ()
+writeSmallMutableArrayArraySmallArray (SmallMutableArrayArray m) (I# i) (SmallMutableArrayArray o) = primitive_ $ \s -> unsafeCoerce# writeSmallArray# m i o s
+{-# INLINE writeSmallMutableArrayArraySmallArray #-}
