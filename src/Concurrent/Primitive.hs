@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module Concurrent.Primitive 
   ( module Concurrent.Primitive.Array
+  , module Concurrent.Primitive.ArrayArray
   , module Concurrent.Primitive.Class
   , module Concurrent.Primitive.MVar
   , module Concurrent.Primitive.PrimRef
@@ -8,6 +9,7 @@ module Concurrent.Primitive
   )where
 
 import Concurrent.Primitive.Array
+import Concurrent.Primitive.ArrayArray
 import Concurrent.Primitive.Class
 import Concurrent.Primitive.MVar
 import Concurrent.Primitive.PrimRef
