@@ -50,11 +50,9 @@ library
     Concurrent.IVar
     Concurrent.Primitive
     Concurrent.Primitive.Array
-    Concurrent.Primitive.ArrayArray
     Concurrent.Primitive.Class
     Concurrent.Primitive.MVar
     Concurrent.Primitive.PrimRef
-    Concurrent.Primitive.SmallArray
     Concurrent.Thread
 
   ghc-options: -Wall -fwarn-tabs
