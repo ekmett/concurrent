@@ -142,7 +142,6 @@ module Concurrent.Primitive.Array
   , unsafeThawSmallArrayArray
   , sizeofSmallArrayArray
   -- ** Indexing
-{-
   , indexArraySmallArray
   , indexArrayArraySmallArray
   , indexByteArraySmallArray
@@ -151,7 +150,8 @@ module Concurrent.Primitive.Array
   , indexMutableByteArraySmallArray
   , indexSmallArraySmallArray
   , indexSmallMutableArraySmallArray
--}
+  , indexSmallArrayArraySmallArray
+  , indexSmallMutableArrayArraySmallArray
   -- * SmallMutableMutableArrayArrays
   , SmallMutableArrayArray(..)
   , newSmallArrayArray
@@ -1051,17 +1051,37 @@ cloneSmallMutableArrayArray (SmallMutableArrayArray arr#) (I# off#) (I# len#) = 
   (# s'#, arr'# #) -> (# s'#, SmallMutableArrayArray arr'# #)
 {-# INLINE cloneSmallMutableArrayArray #-}
 
+indexArraySmallArray :: SmallArrayArray -> Int -> Array a
+indexArraySmallArray (SmallArrayArray a) (I# i) = Array (unsafeCoerce# indexSmallArray# a i)
+
+indexArrayArraySmallArray :: SmallArrayArray -> Int -> ArrayArray
+indexArrayArraySmallArray (SmallArrayArray a) (I# i) = ArrayArray (unsafeCoerce# indexSmallArray# a i)
+
+indexByteArraySmallArray :: SmallArrayArray -> Int -> ByteArray
+indexByteArraySmallArray (SmallArrayArray a) (I# i) = ByteArray (unsafeCoerce# indexSmallArray# a i)
+
+indexMutableArraySmallArray :: SmallArrayArray -> Int -> MutableArray s a
+indexMutableArraySmallArray (SmallArrayArray a) (I# i) = MutableArray (unsafeCoerce# indexSmallArray# a i)
+
+indexMutableArrayArraySmallArray :: SmallArrayArray -> Int -> MutableArrayArray s
+indexMutableArrayArraySmallArray (SmallArrayArray a) (I# i) = MutableArrayArray (unsafeCoerce# indexSmallArray# a i)
+
+indexMutableByteArraySmallArray :: SmallArrayArray -> Int -> MutableByteArray s
+indexMutableByteArraySmallArray (SmallArrayArray a) (I# i) = MutableByteArray (unsafeCoerce# indexSmallArray# a i)
+
+indexSmallArraySmallArray :: SmallArrayArray -> Int -> SmallArray a
+indexSmallArraySmallArray (SmallArrayArray a) (I# i)  = SmallArray (unsafeCoerce# indexSmallArray# a i)
+
+indexSmallMutableArraySmallArray :: SmallArrayArray -> Int -> SmallMutableArray s a
+indexSmallMutableArraySmallArray (SmallArrayArray a) (I# i)  = SmallMutableArray (unsafeCoerce# indexSmallArray# a i)
+
+indexSmallArrayArraySmallArray :: SmallArrayArray -> Int -> SmallArrayArray
+indexSmallArrayArraySmallArray (SmallArrayArray a) (I# i)  = SmallArrayArray (unsafeCoerce# indexSmallArray# a i)
+
+indexSmallMutableArrayArraySmallArray :: SmallArrayArray -> Int -> SmallMutableArrayArray s
+indexSmallMutableArrayArraySmallArray (SmallArrayArray a) (I# i)  = SmallMutableArrayArray (unsafeCoerce# indexSmallArray# a i)
+
 {-
-  -- * SmallArrayArrays
-  -- ** Indexing
-  , indexArraySmallArray
-  , indexArrayArraySmallArray
-  , indexByteArraySmallArray
-  , indexMutableArraySmallArray
-  , indexMutableArrayArraySmallArray
-  , indexMutableByteArraySmallArray
-  , indexSmallArraySmallArray
-  , indexSmallMutableArraySmallArray
   -- * MutableArraySmallArrays
   -- ** Reading
   , readArraySmallArray
