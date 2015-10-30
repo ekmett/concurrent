@@ -61,6 +61,7 @@ library
 
   c-sources:
     cbits/array.cmm
+    cbits/hashmap.cmm
     cbits/thread.cmm
     cbits/mvar.cmm
 

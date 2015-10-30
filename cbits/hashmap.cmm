@@ -1,0 +1,94 @@
+#include <Cmm.h>
+
+/*
+data HashMap k v
+    = Empty
+    | BitmapIndexed !Bitmap !(A.Array (HashMap k v))
+    | Leaf !Hash !(Leaf k v)
+    | Full !(A.Array (HashMap k v))
+    | Collision !Hash !(A.Array (Leaf k v))
+*/
+
+INFO_TABLE_CONSTR(stg_HASHMAP_EMPTY, 0, 0, 1, CONSTR_NOCAF_STATIC, "HASHMAP_EMPTY", "HASHMAP_EMPTY")
+{ foreign "C" barf("HASHMAP_EMPTY object entered!") never returns; }
+
+CLOSURE(stg_HASHMAP_EMPTY_closure, stg_HASHMAP_EMPTY);
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP0, 0, 1, 2, CONSTR_0_1, "HASHMAP_BITMAP0","HASHMAP_BITMAP0")
+{ foreign "C" barf("HASHMAP_BITMAP0 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP1, 1, 1, 2, CONSTR_1_1, "HASHMAP_BITMAP1","HASHMAP_BITMAP1")
+{ foreign "C" barf("HASHMAP_BITMAP1 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP2, 2, 1, 2, CONSTR, "HASHMAP_BITMAP2","HASHMAP_BITMAP2")
+{ foreign "C" barf("HASHMAP_BITMAP2 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP3, 3, 1, 2, CONSTR, "HASHMAP_BITMAP3","HASHMAP_BITMAP3")
+{ foreign "C" barf("HASHMAP_BITMAP3 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP4, 4, 1, 2, CONSTR, "HASHMAP_BITMAP4","HASHMAP_BITMAP4")
+{ foreign "C" barf("HASHMAP_BITMAP4 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP5, 5, 1, 2, CONSTR, "HASHMAP_BITMAP5","HASHMAP_BITMAP5")
+{ foreign "C" barf("HASHMAP_BITMAP5 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP6, 6, 1, 2, CONSTR, "HASHMAP_BITMAP6","HASHMAP_BITMAP6")
+{ foreign "C" barf("HASHMAP_BITMAP6 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP7, 7, 1, 2, CONSTR, "HASHMAP_BITMAP7","HASHMAP_BITMAP7")
+{ foreign "C" barf("HASHMAP_BITMAP7 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP8, 8, 1, 2, CONSTR, "HASHMAP_BITMAP8","HASHMAP_BITMAP8")
+{ foreign "C" barf("HASHMAP_BITMAP8 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP9, 9, 1, 2, CONSTR, "HASHMAP_BITMAP9","HASHMAP_BITMAP9")
+{ foreign "C" barf("HASHMAP_BITMAP9 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP10, 10, 1, 2, CONSTR, "HASHMAP_BITMAP10","HASHMAP_BITMAP10")
+{ foreign "C" barf("HASHMAP_BITMAP10 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP11, 11, 1, 2, CONSTR, "HASHMAP_BITMAP11","HASHMAP_BITMAP11")
+{ foreign "C" barf("HASHMAP_BITMAP11 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP12, 12, 1, 2, CONSTR, "HASHMAP_BITMAP12","HASHMAP_BITMAP12")
+{ foreign "C" barf("HASHMAP_BITMAP12 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP13, 13, 1, 2, CONSTR, "HASHMAP_BITMAP13","HASHMAP_BITMAP13")
+{ foreign "C" barf("HASHMAP_BITMAP13 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP14, 14, 1, 2, CONSTR, "HASHMAP_BITMAP14","HASHMAP_BITMAP14")
+{ foreign "C" barf("HASHMAP_BITMAP14 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_BITMAP15, 15, 1, 2, CONSTR, "HASHMAP_BITMAP15","HASHMAP_BITMAP15")
+{ foreign "C" barf("HASHMAP_BITMAP15 object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_LEAF, 1, 1, 3, CONSTR_1_1, "HASHMAP_LEAF","HASHMAP_LEAF")
+{ foreign "C" barf("HASHMAP_LEAF object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_FULL, 16, 0, 4, CONSTR, "HASHMAP_FULL","HASHMAP_FULL")
+{ foreign "C" barf("HASHMAP_FULL object entered!") never returns; }
+
+INFO_TABLE_CONSTR(stg_HASHMAP_COLLISION, 1, 1, 5, CONSTR_1_1,"HASHMAP_COLLISION","HASHMAP_COLLISION")
+{ foreign "C" barf("HASHMAP_COLLISION object entered!") never returns; }
+
+section "data" {
+  stg_HASHMAP_infos:
+    W_ stg_HASHMAP_BITMAP0_info;
+    W_ stg_HASHMAP_BITMAP1_info;
+    W_ stg_HASHMAP_BITMAP2_info;
+    W_ stg_HASHMAP_BITMAP3_info;
+    W_ stg_HASHMAP_BITMAP4_info;
+    W_ stg_HASHMAP_BITMAP5_info;
+    W_ stg_HASHMAP_BITMAP6_info;
+    W_ stg_HASHMAP_BITMAP7_info;
+    W_ stg_HASHMAP_BITMAP8_info;
+    W_ stg_HASHMAP_BITMAP9_info;
+    W_ stg_HASHMAP_BITMAP10_info;
+    W_ stg_HASHMAP_BITMAP11_info;
+    W_ stg_HASHMAP_BITMAP12_info;
+    W_ stg_HASHMAP_BITMAP13_info;
+    W_ stg_HASHMAP_BITMAP14_info;
+    W_ stg_HASHMAP_BITMAP15_info;
+    W_ stg_HASHMAP_FULL_info;
+}
+
