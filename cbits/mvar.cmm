@@ -1,9 +1,8 @@
 #include <Cmm.h>
 
 #define LOCK_LOCAL(closure,info) info = GET_INFO(closure)
-#define UNLOCK_LOCAL(ptr,info) \
-  prim_write_barrier;          \
-  StgHeader_info(ptr) = info;
+#define UNLOCK_LOCAL(ptr,info) StgHeader_info(ptr) = info
+/* NB: This does _not_ include the prim_write_barrier */
 
 #define PerformTake(stack, value)               \
     W_ sp;                                      \
@@ -16,6 +15,58 @@
     sp = StgStack_sp(stack) + WDS(3);           \
     StgStack_sp(stack) = sp;                    \
     lval = W_[sp - WDS(1)];
+
+#define PRE_RETURN(why,what_next)                       \
+  StgTSO_what_next(CurrentTSO) = what_next::I16;        \
+  StgRegTable_rRet(BaseReg) = why;                      \
+  R1 = BaseReg;
+
+#define BLOCK_BUT_FIRST(c)                      \
+    PRE_RETURN(ThreadBlocked, ThreadRunGHC)     \
+    R2 = c;                                     \
+    jump stg_returnToSchedButFirst [R1,R2,R3];
+
+INFO_TABLE_RET ( local_block_takemvar, RET_SMALL, W_ info_ptr, P_ mvar )
+    return ()
+{
+    jump localTakeMVarzh(mvar);
+}
+
+// code fragment executed just before we return to the scheduler
+local_block_takemvar_finally
+{
+    W_ r1, r3;
+    r1 = R1;
+    r3 = R3;
+    UNLOCK_LOCAL(R3, stg_MVAR_DIRTY_info);
+    R1 = r1;
+    R3 = r3;
+    jump StgReturn [R1];
+}
+
+
+local_block_takemvar /* mvar passed in R1 */
+{
+    Sp_adj(-2);
+    Sp(1) = R1;
+    Sp(0) = local_block_takemvar_info;
+    R3 = R1; // mvar communicated to stg_block_takemvar_finally in R3
+    BLOCK_BUT_FIRST(local_block_takemvar_finally);
+}
+
+
+
+// code fragment executed just before we return to the scheduler
+local_block_readmvar_finally
+{
+    W_ r1, r3;
+    r1 = R1;
+    r3 = R3;
+    unlockClosure(R3, stg_MVAR_DIRTY_info);
+    R1 = r1;
+    R3 = r3;
+    jump StgReturn [R1];
+}
 
 /* Takes from an MVar without a lock. This requires that the MVar is only accessed within the local capability. */
 localTakeMVarzh ( P_ mvar /* :: MVar a */ )
@@ -58,7 +109,7 @@ localTakeMVarzh ( P_ mvar /* :: MVar a */ )
         StgTSO_why_blocked(CurrentTSO) = BlockedOnMVar::I16;
         StgMVar_tail(mvar)             = q;
 
-        jump stg_block_takemvar(mvar);
+        jump local_block_takemvar(mvar); /* we should duplicate this code too, so it an avoid the unlock cost */
     }
 
     /* we got the value... */

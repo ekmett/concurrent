@@ -3,7 +3,9 @@
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE GHCForeignImportPrim #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
-module Concurrent.Primitive.MVar where
+module Concurrent.Primitive.MVar
+  ( localTakeMVar
+  ) where
 
 import GHC.IO
 import GHC.MVar
