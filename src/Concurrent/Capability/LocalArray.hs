@@ -3,7 +3,9 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Concurrent.Capability.LocalArray
-  ( LocalArray
+  ( 
+  -- * Capability-Local Arrays
+    LocalArray
   , newLocalArray
   , readLocalArray
   , writeLocalArray
@@ -13,6 +15,17 @@ module Concurrent.Capability.LocalArray
   , modifyLocalArray'
   , fetchModifyLocalArray
   , fetchModifyLocalArray'
+  -- * Small Capability-Local Arrays
+  , SmallLocalArray
+  , newSmallLocalArray
+  , readSmallLocalArray
+  , writeSmallLocalArray
+  , atomicModifySmallLocalArray
+  , atomicModifySmallLocalArray'
+  , modifySmallLocalArray
+  , modifySmallLocalArray'
+  , fetchModifySmallLocalArray
+  , fetchModifySmallLocalArray'
   ) where
 
 import Concurrent.Capability.Pinned
@@ -88,3 +101,63 @@ fetchModifyLocalArray l i f = withLocalArray l $ \arr -> localFetchModifyArray a
 fetchModifyLocalArray' :: (MonadPrimIO m, ReifiesCapability m) => LocalArray a -> Int -> (a -> a) -> m a
 fetchModifyLocalArray' l i f = withLocalArray l $ \arr -> localFetchModifyArray' arr i f
 {-# INLINE fetchModifyLocalArray' #-}
+
+newtype SmallLocalArray a = SmallLocalArray SmallArrayArray
+
+-- | Calling 'Control.Concurrent.setNumCapabilities' after this is built can cause you to crash when accessing it
+-- and break invariants.
+newSmallLocalArray :: MonadPrimIO m => Int -> a -> m (SmallLocalArray a)
+newSmallLocalArray n a = primIO $ do
+  cs <- getNumCapabilities
+  r <- newSmallArrayArray cs
+  forN_ 0 cs $ \i -> do
+    m <- newSmallArray n a
+    writeSmallMutableArraySmallArray r i m
+  SmallLocalArray <$> unsafeFreezeSmallArrayArray r
+
+-- | We could upgrade this to expand gracefully if we see an out of bounds capability.
+reflectSmallLocalArray :: ReifiesCapability s => SmallLocalArray a -> Tagged s (SmallMutableArray RealWorld a)
+reflectSmallLocalArray (SmallLocalArray m) = indexSmallMutableArraySmallArray m <$> reflectCapability
+{-# INLINE reflectSmallLocalArray #-}
+
+withSmallLocalArray :: forall m a r. ReifiesCapability m => SmallLocalArray a -> (SmallMutableArray RealWorld a -> m r) -> m r
+withSmallLocalArray l f = f $ untag (reflectSmallLocalArray l :: Tagged m (SmallMutableArray RealWorld a))
+{-# INLINE withSmallLocalArray #-}
+
+readSmallLocalArray :: forall m a. (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> m a
+readSmallLocalArray l i = withSmallLocalArray l $ \arr -> readSmallArray arr i
+{-# INLINE readSmallLocalArray #-}
+
+writeSmallLocalArray :: (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> a -> m ()
+writeSmallLocalArray l i a = withSmallLocalArray l $ \arr -> writeSmallArray arr i a
+{-# INLINE writeSmallLocalArray #-}
+
+-- | This is safely atomic, despite the lack of CAS.
+atomicModifySmallLocalArray :: (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> (a -> (a, b)) -> m b
+atomicModifySmallLocalArray l i f = withSmallLocalArray l $ \arr -> localAtomicModifySmallArray arr i f
+{-# INLINE atomicModifySmallLocalArray #-}
+
+-- | This is safely atomic, despite the lack of CAS.
+atomicModifySmallLocalArray' :: (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> (a -> (a, b)) -> m b
+atomicModifySmallLocalArray' l i f = withSmallLocalArray l $ \arr -> localAtomicModifySmallArray' arr i f
+{-# INLINE atomicModifySmallLocalArray' #-}
+
+-- | This is safely atomic, despite the lack of CAS.
+modifySmallLocalArray :: (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> (a -> a) -> m a
+modifySmallLocalArray l i f = withSmallLocalArray l $ \arr -> localModifySmallArray arr i f
+{-# INLINE modifySmallLocalArray #-}
+
+-- | This is safely atomic, despite the lack of CAS.
+modifySmallLocalArray' :: (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> (a -> a) -> m a
+modifySmallLocalArray' l i f = withSmallLocalArray l $ \arr -> localModifySmallArray' arr i f
+{-# INLINE modifySmallLocalArray' #-}
+
+-- | This is safely atomic, despite the lack of CAS.
+fetchModifySmallLocalArray :: (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> (a -> a) -> m a
+fetchModifySmallLocalArray l i f = withSmallLocalArray l $ \arr -> localFetchModifySmallArray arr i f
+{-# INLINE fetchModifySmallLocalArray #-}
+
+-- | This is safely atomic, despite the lack of CAS.
+fetchModifySmallLocalArray' :: (MonadPrimIO m, ReifiesCapability m) => SmallLocalArray a -> Int -> (a -> a) -> m a
+fetchModifySmallLocalArray' l i f = withSmallLocalArray l $ \arr -> localFetchModifySmallArray' arr i f
+{-# INLINE fetchModifySmallLocalArray' #-}
