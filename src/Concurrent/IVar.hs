@@ -1,27 +1,29 @@
 module Concurrent.IVar where
 
 import Concurrent.Exception
+import Concurrent.Par
 import Control.Concurrent.MVar
 import Control.Exception
 import Control.Monad
 import GHC.IO
 
-data IVar a = IVar {-# UNPACK #-} !(MVar a) a
+data IVar s a = IVar {-# UNPACK #-} !(MVar a) a
 
-newIVar :: IO (IVar a)
-newIVar = do
+newIVar :: MonadPar d i s m => m (IVar s a)
+newIVar = unsafeParIO $ do
   x <- newEmptyMVar
   IVar x <$> unsafeDupableInterleaveIO (readMVar x) `catch` \BlockedIndefinitelyOnMVar -> throw BlockedIndefinitelyOnIVar
 
-readIVar :: IVar a -> a
+readIVar :: IVar s a -> a
 readIVar (IVar _ a) = a
 
-writeIVar :: Eq a => IVar a -> a -> IO ()
-writeIVar (IVar m _) a = do
+writeIVar :: (MonadPar d i s m, Eq a) => IVar s a -> a -> m ()
+writeIVar (IVar m _) a = unsafeParIO $ do
   t <- tryPutMVar m a
   unless t $ do
      b <- readMVar m
      unless (a == b) $ throwIO Contradiction
 
-unsafeWriteIVar :: IVar a -> a -> IO ()
-unsafeWriteIVar (IVar m _) a = () <$ tryPutMVar m a
+-- | Like 'writeIVar' but assumes (without checking) that the write is always consistent.
+unsafeWriteIVar :: MonadPar d i s m => IVar s a -> a -> m ()
+unsafeWriteIVar (IVar m _) a = unsafeParIO $ () <$ tryPutMVar m a
