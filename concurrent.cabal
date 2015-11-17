@@ -50,6 +50,7 @@ library
     Concurrent.Internal.Counted
     Concurrent.Internal.Util
     Concurrent.IVar
+    Concurrent.Par
     Concurrent.Primitive
     Concurrent.Primitive.Array
     Concurrent.Primitive.Class
