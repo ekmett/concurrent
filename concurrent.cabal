@@ -50,13 +50,13 @@ library
     Concurrent.Internal.Backoff
     Concurrent.Internal.Counted
     Concurrent.Internal.Util
-    Concurrent.IVar
     Concurrent.Par
     Concurrent.Primitive
     Concurrent.Primitive.Array
     Concurrent.Primitive.Class
     Concurrent.Primitive.MVar
     Concurrent.Primitive.PrimRef
+    Concurrent.Promise
     Concurrent.Thread
 
   ghc-options: -Wall -fwarn-tabs

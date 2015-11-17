@@ -1,6 +1,6 @@
 module Concurrent.Bool where
 
-import Concurrent.IVar
+import Concurrent.Promise
 import Concurrent.Par
 import Control.Monad
 
@@ -9,19 +9,19 @@ infixr 3 <&&>
 -- | Maximally lazy &&
 (<&&>) :: Bool -> Bool -> Bool
 x <&&> y = runPar $ do
-  z <- newEmptyIVar
-  fork $ if x then when y $ unsafeWriteIVar z True
-         else unsafeWriteIVar z False
-  fork $ unless y $ unsafeWriteIVar z False
-  return $ readIVar z
+  z <- newEmptyPromise
+  fork $ if x then when y $ unsafeWritePromise z True
+         else unsafeWritePromise z False
+  fork $ unless y $ unsafeWritePromise z False
+  return $ readPromise z
 
 infixr 2 <||>
 
 -- | Maximally lazy ||
 (<||>) :: Bool -> Bool -> Bool
 x <||> y = runPar $ do
-  z <- newEmptyIVar
-  fork $ if x then unsafeWriteIVar z True
-         else unless y $ unsafeWriteIVar z False
-  fork $ when y $ unsafeWriteIVar z True
-  return $ readIVar z
+  z <- newEmptyPromise
+  fork $ if x then unsafeWritePromise z True
+         else unless y $ unsafeWritePromise z False
+  fork $ when y $ unsafeWritePromise z True
+  return $ readPromise z
