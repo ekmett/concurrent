@@ -23,8 +23,9 @@ newPromise a = unsafeDupablePerformIO $ do
   x <- newMVar a
   return $ Promise x a
 
+-- | Fulfilling the promise is tied to the region parameter, but reading the value is not.
 readPromise :: Promise s a -> a
-readPromise (Promise _ a)     = a
+readPromise (Promise _ a) = a
 
 writePromise :: (MonadPar d i s m, Eq a) => Promise s a -> a -> m ()
 writePromise (Promise m _) a = unsafeParIO $ do
