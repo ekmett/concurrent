@@ -9,31 +9,51 @@
 <body>
 <pre><a name="line-1"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Bool</span> <span class='hs-keyword'>where</span>
 <a name="line-2"></a>
-<a name="line-3"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Promise</span>
-<a name="line-4"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Promise</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
-<a name="line-5"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Par</span>
-<a name="line-6"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span>
-<a name="line-7"></a>
-<a name="line-8"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>3</span> <span class='hs-varop'>&lt;&amp;&amp;&gt;</span>
-<a name="line-9"></a>
-<a name="line-10"></a><a name="%3c&&%3e"></a><span class='hs-comment'>-- | Maximally lazy &amp;&amp;</span>
-<a name="line-11"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&amp;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span>
-<a name="line-12"></a><a name="x"></a><span class='hs-definition'>x</span> <span class='hs-varop'>&lt;&amp;&amp;&gt;</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runPar</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
-<a name="line-13"></a>  <span class='hs-varid'>z</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newEmptyPromise</span>
-<a name="line-14"></a>  <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>if</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>then</span> <span class='hs-varid'>when</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>True</span>
-<a name="line-15"></a>         <span class='hs-keyword'>else</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>False</span>
-<a name="line-16"></a>  <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unless</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>False</span>
-<a name="line-17"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-varid'>readPromise</span> <span class='hs-varid'>z</span>
-<a name="line-18"></a>
-<a name="line-19"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>2</span> <span class='hs-varop'>&lt;||&gt;</span>
-<a name="line-20"></a>
-<a name="line-21"></a><a name="%3c%7c%7c%3e"></a><span class='hs-comment'>-- | Maximally lazy ||</span>
-<a name="line-22"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;||&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span>
-<a name="line-23"></a><span class='hs-definition'>x</span> <span class='hs-varop'>&lt;||&gt;</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runPar</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
-<a name="line-24"></a>  <span class='hs-varid'>z</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newEmptyPromise</span>
-<a name="line-25"></a>  <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>if</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>then</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>True</span>
-<a name="line-26"></a>         <span class='hs-keyword'>else</span> <span class='hs-varid'>unless</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>False</span>
-<a name="line-27"></a>  <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-varid'>when</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>True</span>
-<a name="line-28"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-varid'>readPromise</span> <span class='hs-varid'>z</span>
+<a name="line-3"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Par</span>
+<a name="line-4"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Par</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
+<a name="line-5"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Promise</span>
+<a name="line-6"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Concurrent</span><span class='hs-varop'>.</span><span class='hs-conid'>Promise</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
+<a name="line-7"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Concurrent</span>
+<a name="line-8"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Exception</span>
+<a name="line-9"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span>
+<a name="line-10"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Foldable</span> <span class='hs-layout'>(</span><span class='hs-varid'>traverse_</span><span class='hs-layout'>)</span>
+<a name="line-11"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>IO</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
+<a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>Mem</span><span class='hs-varop'>.</span><span class='hs-conid'>Weak</span>
+<a name="line-13"></a>
+<a name="line-14"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>3</span> <span class='hs-varop'>&lt;&amp;&amp;&gt;</span>
+<a name="line-15"></a>
+<a name="line-16"></a><a name="%3c&&%3e"></a><span class='hs-comment'>-- | Maximally lazy '&amp;&amp;'</span>
+<a name="line-17"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&amp;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span>
+<a name="line-18"></a><a name="x"></a><span class='hs-definition'>x</span> <span class='hs-varop'>&lt;&amp;&amp;&gt;</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runPar</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-19"></a>  <span class='hs-varid'>z</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newEmptyPromise</span>
+<a name="line-20"></a>  <span class='hs-varid'>t1</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>if</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>then</span> <span class='hs-varid'>when</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>True</span>
+<a name="line-21"></a>         <span class='hs-keyword'>else</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>False</span>
+<a name="line-22"></a>  <span class='hs-varid'>t2</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unless</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>False</span>
+<a name="line-23"></a>  <span class='hs-varid'>unsafeParIO</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-24"></a>    <span class='hs-varid'>wt1</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>mkWeakThreadId</span> <span class='hs-varid'>t1</span>
+<a name="line-25"></a>    <span class='hs-varid'>wt2</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>mkWeakThreadId</span> <span class='hs-varid'>t2</span>
+<a name="line-26"></a>    <span class='hs-varid'>unsafeInterleaveIO</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-27"></a>      <span class='hs-varid'>r</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>evaluate</span> <span class='hs-layout'>(</span><span class='hs-varid'>readPromise</span> <span class='hs-varid'>z</span><span class='hs-layout'>)</span>
+<a name="line-28"></a>      <span class='hs-varid'>deRefWeak</span> <span class='hs-varid'>wt1</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>traverse_</span> <span class='hs-varid'>killThread</span>
+<a name="line-29"></a>      <span class='hs-varid'>deRefWeak</span> <span class='hs-varid'>wt2</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>traverse_</span> <span class='hs-varid'>killThread</span>
+<a name="line-30"></a>      <span class='hs-varid'>return</span> <span class='hs-varid'>r</span>
+<a name="line-31"></a>
+<a name="line-32"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>2</span> <span class='hs-varop'>&lt;||&gt;</span>
+<a name="line-33"></a>
+<a name="line-34"></a><a name="%3c%7c%7c%3e"></a><span class='hs-comment'>-- | Maximally lazy '||'</span>
+<a name="line-35"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;||&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span>
+<a name="line-36"></a><span class='hs-definition'>x</span> <span class='hs-varop'>&lt;||&gt;</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runPar</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-37"></a>  <span class='hs-varid'>z</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newEmptyPromise</span>
+<a name="line-38"></a>  <span class='hs-varid'>t1</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>if</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>then</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>True</span>
+<a name="line-39"></a>               <span class='hs-keyword'>else</span> <span class='hs-varid'>unless</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>False</span>
+<a name="line-40"></a>  <span class='hs-varid'>t2</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>fork</span> <span class='hs-varop'>$</span> <span class='hs-varid'>when</span> <span class='hs-varid'>y</span> <span class='hs-varop'>$</span> <span class='hs-varid'>unsafeWritePromise</span> <span class='hs-varid'>z</span> <span class='hs-conid'>True</span>
+<a name="line-41"></a>  <span class='hs-varid'>unsafeParIO</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-42"></a>    <span class='hs-varid'>wt1</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>mkWeakThreadId</span> <span class='hs-varid'>t1</span>
+<a name="line-43"></a>    <span class='hs-varid'>wt2</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>mkWeakThreadId</span> <span class='hs-varid'>t2</span>
+<a name="line-44"></a>    <span class='hs-varid'>unsafeInterleaveIO</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-45"></a>      <span class='hs-varid'>r</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>evaluate</span> <span class='hs-layout'>(</span><span class='hs-varid'>readPromise</span> <span class='hs-varid'>z</span><span class='hs-layout'>)</span>
+<a name="line-46"></a>      <span class='hs-varid'>deRefWeak</span> <span class='hs-varid'>wt1</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>traverse_</span> <span class='hs-varid'>killThread</span>
+<a name="line-47"></a>      <span class='hs-varid'>deRefWeak</span> <span class='hs-varid'>wt2</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>traverse_</span> <span class='hs-varid'>killThread</span>
+<a name="line-48"></a>      <span class='hs-varid'>return</span> <span class='hs-varid'>r</span>
 </pre></body>
 </html>
