@@ -36,25 +36,25 @@ makeStruct [d|
     , value :: v
     } |]
 
-newtype Heap k v s = Heap (StructRef (Node k v) s)
+newtype Heap k v s = Heap (Ref (Node k v) s)
 
 type TransientHeap = Node
 
 new :: MonadPrim s m => m (Heap k v s)
-new = primST $ Heap <$> newStructRef Nil
+new = primST $ Heap <$> newRef Nil
 
 modify :: MonadPrim s m => (TransientHeap k v s -> ST s (a, TransientHeap k v s)) -> Heap k v s -> m a
 modify f (Heap h) = primST $ do
-  r <- readStructRef h
+  r <- readRef h
   (a, r') <- f r
-  writeStructRef h r'
+  writeRef h r'
   return a
 
 modify_ :: MonadPrim s m => (TransientHeap k v s -> ST s (TransientHeap k v s)) -> Heap k v s -> m ()
 modify_ f (Heap h) = primST $ do
-  r <- readStructRef h
+  r <- readRef h
   r' <- f r
-  writeStructRef h r'
+  writeRef h r'
 
 insert :: (MonadPrim s m, Ord k) => k -> v -> Heap k v s -> m (Node k v s)
 insert k v h = modify (insertNode k v) h
@@ -84,11 +84,11 @@ extractMinNode r
 
 meld :: (MonadPrim s m, Ord k) => Heap k v s -> Heap k v s -> m ()
 meld (Heap p) (Heap q) = primST $ do
-  a <- readStructRef p
-  b <- readStructRef q
+  a <- readRef p
+  b <- readRef q
   c <- meldNode a b
-  writeStructRef p c
-  writeStructRef q Nil
+  writeRef p c
+  writeRef q Nil
 
 -- | @'meldNode' l r@ merges the contents of two transient min-heaps @l@ and @r@
 -- mutably. It destructively adds the contents of @r@ to @l@ and returns the modified @l@.
@@ -162,9 +162,9 @@ deleteNode r n = do
 
 setKey :: (MonadPrim s m, Ord k) => Heap k v s -> Node k v s -> k -> m ()
 setKey (Heap h) n k = primST $ do
-  r <- readStructRef h
+  r <- readRef h
   r' <- setKeyNode r n k
-  writeStructRef h r'
+  writeRef h r'
 
 -- | Generalized 'decreaseKey' (allowed to increase key)
 setKeyNode :: Ord k => TransientHeap k v s -> Node k v s -> k -> ST s (TransientHeap k v s)

@@ -4,11 +4,11 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Concurrent.Struct.Ref
-  ( StructRef
-  , newStructRef
-  , readStructRef
-  , writeStructRef
-  , casStructRef
+  ( Ref
+  , newRef
+  , readRef
+  , writeRef
+  , casRef
   ) where
 
 import Concurrent.Primitive.Class
@@ -16,24 +16,24 @@ import Control.Monad.Primitive
 import Data.Struct.Internal
 import GHC.Exts
 
-data StructRef (f :: * -> *) (s :: *) = StructRef (MutVar# s Any)
+data Ref (f :: * -> *) (s :: *) = Ref (MutVar# s Any)
 
-instance Eq (StructRef f s) where
-  StructRef p == StructRef q = isTrue# (sameMutVar# p q)
+instance Eq (Ref f s) where
+  Ref p == Ref q = isTrue# (sameMutVar# p q)
 
-newStructRef :: (MonadPrim s m, Struct f) => f s -> m (StructRef f s)
-newStructRef x = primitive $ \ s -> case unsafeCoerce# newMutVar# (destruct x) s of
-  (# s', r #) -> (# s', StructRef r #)
+newRef :: (MonadPrim s m, Struct f) => f s -> m (Ref f s)
+newRef x = primitive $ \ s -> case unsafeCoerce# newMutVar# (destruct x) s of
+  (# s', r #) -> (# s', Ref r #)
 
-readStructRef :: (MonadPrim s m, Struct f) => StructRef f s -> m (f s)
-readStructRef (StructRef r) = primitive $ \s -> case readMutVar# r s of
+readRef :: (MonadPrim s m, Struct f) => Ref f s -> m (f s)
+readRef (Ref r) = primitive $ \s -> case readMutVar# r s of
   (# s', y #) -> (# s', construct (unsafeCoerce# y) #)
 
-writeStructRef :: (MonadPrim s m, Struct f) => StructRef f s -> f s -> m ()
-writeStructRef (StructRef r) x = primitive_ $ \s -> unsafeCoerce# writeMutVar# r (destruct x) s
+writeRef :: (MonadPrim s m, Struct f) => Ref f s -> f s -> m ()
+writeRef (Ref r) x = primitive_ $ \s -> unsafeCoerce# writeMutVar# r (destruct x) s
 
-casStructRef :: (MonadPrim s m, Struct f) => StructRef f s -> f s -> f s -> m (f s)
-casStructRef (StructRef r) x y = primitive $ \s -> case casMutVar## r (destruct x) (destruct y) s of
+casRef :: (MonadPrim s m, Struct f) => Ref f s -> f s -> f s -> m (f s)
+casRef (Ref r) x y = primitive $ \s -> case casMutVar## r (destruct x) (destruct y) s of
   (# s', _, z #) -> (# s', construct z #)
 
 casMutVar## :: MutVar# s Any -> SmallMutableArray# s Any -> SmallMutableArray# s Any -> State# s -> (# State# s, Int#, SmallMutableArray# s Any #)
