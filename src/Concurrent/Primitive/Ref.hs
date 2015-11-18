@@ -4,7 +4,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE Unsafe #-}
 
-module Concurrent.Primitive.PrimRef
+module Concurrent.Primitive.Ref
   ( 
   -- * Primitive References
     PrimRef(..)

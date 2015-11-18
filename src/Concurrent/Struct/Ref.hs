@@ -3,7 +3,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Concurrent.Primitive.StructRef
+module Concurrent.Struct.Ref
   ( StructRef
   , newStructRef
   , readStructRef

@@ -1,8 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RoleAnnotations #-}
-
-module Concurrent.Internal.Heap
+module Concurrent.Struct.Heap
   (
   -- * Mutable API
     Heap(..)
@@ -24,7 +23,7 @@ module Concurrent.Internal.Heap
   ) where
 
 import Concurrent.Primitive.Class
-import Concurrent.Primitive.StructRef
+import Concurrent.Struct.Ref
 import Control.Monad
 import Data.Struct.Internal
 import Data.Struct.TH
