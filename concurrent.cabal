@@ -58,6 +58,7 @@ library
     Concurrent.Primitive.Class
     Concurrent.Primitive.MVar
     Concurrent.Primitive.PrimRef
+    Concurrent.Primitive.StructRef
     Concurrent.Promise
     Concurrent.Thread
 
