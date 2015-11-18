@@ -39,6 +39,7 @@ library
     exceptions,
     ghc-prim,
     primitive,
+    structs,
     tagged,
     transformers >= 0.4 && < 0.5
 
@@ -49,6 +50,7 @@ library
     Concurrent.Exception
     Concurrent.Internal.Backoff
     Concurrent.Internal.Counted
+    Concurrent.Internal.Heap
     Concurrent.Internal.Util
     Concurrent.Par
     Concurrent.Primitive
