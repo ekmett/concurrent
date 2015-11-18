@@ -1,6 +1,7 @@
 module Concurrent.Bool where
 
 import Concurrent.Promise
+import Concurrent.Promise.Unsafe
 import Concurrent.Par
 import Control.Monad
 

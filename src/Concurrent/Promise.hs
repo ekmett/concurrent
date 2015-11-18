@@ -1,16 +1,18 @@
-{-# LANGUAGE Unsafe #-}
-module Concurrent.Promise where
+module Concurrent.Promise
+  ( Promise
+  , newEmptyPromise
+  , newPromise
+  , readPromise
+  , writePromise
+  ) where
 
 import Concurrent.Exception
+import Concurrent.Promise.Unsafe
 import Concurrent.Par
 import Control.Concurrent.MVar
 import Control.Exception
 import Control.Monad
 import GHC.IO
-
--- | An 'Promise' can be fulfilled multiple times, but must be always be fulfilled with the same answer.
-data Promise s a
-  = Promise {-# UNPACK #-} !(MVar a) a
 
 newEmptyPromise :: MonadPar d i s m => m (Promise s a)
 newEmptyPromise = unsafeParIO $ do
@@ -27,6 +29,7 @@ newPromise a = unsafeDupablePerformIO $ do
 readPromise :: Promise s a -> a
 readPromise (Promise _ a) = a
 
+-- | This would be valid under @SafeHaskell@ in the presence of sound 'Eq' instances.
 writePromise :: (MonadPar d i s m, Eq a) => Promise s a -> a -> m ()
 writePromise (Promise m _) a = unsafeParIO $ do
   a' <- evaluate a
@@ -34,9 +37,3 @@ writePromise (Promise m _) a = unsafeParIO $ do
   unless t $ do
      b <- readMVar m
      unless (a' == b) $ throwIO Contradiction
-
--- | Like 'writePromise' but assumes (without checking) that the write is always consistent.
-unsafeWritePromise :: MonadPar d i s m => Promise s a -> a -> m ()
-unsafeWritePromise (Promise m _) a = unsafeParIO $ do
-  a' <- evaluate a
-  () <$ tryPutMVar m a'

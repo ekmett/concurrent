@@ -58,6 +58,7 @@ library
     Concurrent.Primitive.MVar
     Concurrent.Primitive.Ref
     Concurrent.Promise
+    Concurrent.Promise.Unsafe
     Concurrent.Struct.Heap
     Concurrent.Struct.Ref
     Concurrent.Thread
