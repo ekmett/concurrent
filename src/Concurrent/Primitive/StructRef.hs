@@ -2,7 +2,13 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Concurrent.Primitive.StructRef where
+module Concurrent.Primitive.StructRef
+  ( StructRef
+  , newStructRef
+  , readStructRef
+  , writeStructRef
+  , casStructRef
+  ) where
 
 import Concurrent.Primitive.Class
 import Control.Monad.Primitive
