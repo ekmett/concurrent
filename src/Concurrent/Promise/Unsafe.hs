@@ -2,6 +2,7 @@
 module Concurrent.Promise.Unsafe where
 
 import Concurrent.Par
+import Concurrent.Par.Unsafe
 import Control.Concurrent.MVar
 import Control.Exception
 

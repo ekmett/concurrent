@@ -9,6 +9,7 @@ module Concurrent.Promise
 import Concurrent.Exception
 import Concurrent.Promise.Unsafe
 import Concurrent.Par
+import Concurrent.Par.Unsafe
 import Control.Concurrent.MVar
 import Control.Exception
 import Control.Monad

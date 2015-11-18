@@ -52,6 +52,7 @@ library
     Concurrent.Internal.Counted
     Concurrent.Internal.Util
     Concurrent.Par
+    Concurrent.Par.Unsafe
     Concurrent.Primitive
     Concurrent.Primitive.Array
     Concurrent.Primitive.Class
