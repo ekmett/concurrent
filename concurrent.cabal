@@ -38,6 +38,7 @@ library
     deepseq,
     exceptions,
     ghc-prim,
+    parallel,
     primitive,
     structs,
     tagged,
@@ -64,6 +65,7 @@ library
     Concurrent.Struct.Heap
     Concurrent.Struct.Ref
     Concurrent.Thread
+    Concurrent.Unamb
 
   ghc-options: -Wall -fwarn-tabs
 

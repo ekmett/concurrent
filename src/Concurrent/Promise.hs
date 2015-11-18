@@ -34,7 +34,8 @@ readPromise (Promise _ a) = a
 writePromise :: (MonadPar d i s m, Eq a) => Promise s a -> a -> m ()
 writePromise (Promise m _) a = unsafeParIO $ do
   a' <- evaluate a
-  t <- tryPutMVar m a'
-  unless t $ do
-     b <- readMVar m
-     unless (a' == b) $ throwIO Contradiction
+  mask_ $ do
+    t <- tryPutMVar m a'
+    unless t $ do
+      b <- readMVar m
+      unless (a' == b) $ throwIO Contradiction

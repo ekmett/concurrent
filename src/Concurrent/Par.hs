@@ -15,8 +15,7 @@ import Control.Monad.IO.Class
 import System.IO.Unsafe
 
 runPar :: (forall s. Par 'Deterministic i s a) -> a
-runPar (Par m) = unsafePerformIO m
+runPar (Par m) = restartingUnsafePerformIO m
 
 runParIO :: MonadIO m => (forall s. Par d i s a) -> m a
 runParIO (Par m) = liftIO m
-

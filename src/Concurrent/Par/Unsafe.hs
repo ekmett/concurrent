@@ -22,6 +22,7 @@ import Control.Monad.Trans.Reader as Reader
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
 import GHC.Prim (RealWorld)
+import System.IO.Unsafe
 
 type role Par nominal nominal nominal representational
 
@@ -34,7 +35,7 @@ instance (d ~ 'NonDeterministic, i ~ 'NonIdempotent, s ~ RealWorld) => MonadIO (
 -- idempotent computations
 class Monad m => MonadPar (d :: Determinism) (i :: Idempotence) (s :: *) m | m -> d i s where
   unsafeParIO :: IO a -> m a
-  fork :: m a -> m ()
+  fork :: m a -> m ThreadId
 
 instance MonadPar d i s m => MonadPar d i s (ExceptT e m) where
   unsafeParIO m    = ExceptT $ Right <$> unsafeParIO m
@@ -62,8 +63,20 @@ instance MonadPar d i s m => MonadPar d i s (Lazy.StateT e m) where
 
 instance MonadPar 'NonDeterministic 'NonIdempotent RealWorld IO where
   unsafeParIO = id
-  fork m = () <$ forkIO (() <$ m)
+  fork m = forkIO (() <$ m)
 
 instance MonadPar d i s (Par d i s) where
   unsafeParIO = Par
-  fork (Par m) = Par (() <$ forkIO (() <$ m))
+  fork (Par m) = Par (forkIO (() <$ m))
+
+unsafeInterleavePar :: Par d i s a -> Par d i s a
+unsafeInterleavePar (Par m) = Par (unsafeInterleaveIO m)
+
+retry :: IO a -> IO a
+retry act = act `catch` \(SomeException e) -> do
+  me <- myThreadId
+  throwTo me e
+  mask_ $ retry act
+
+restartingUnsafePerformIO :: IO a -> a
+restartingUnsafePerformIO m = unsafePerformIO (retry m)

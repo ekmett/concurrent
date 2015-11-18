@@ -14,4 +14,3 @@ import Concurrent.Primitive.Ref
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
 #endif
-
