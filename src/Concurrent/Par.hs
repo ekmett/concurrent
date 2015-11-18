@@ -9,6 +9,7 @@ module Concurrent.Par
   , MonadPar(fork)
   ) where
 
+import Concurrent.Par.Types
 import Concurrent.Par.Unsafe
 import Control.Monad.IO.Class
 import System.IO.Unsafe

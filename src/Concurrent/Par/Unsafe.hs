@@ -11,6 +11,7 @@
 {-# LANGUAGE RoleAnnotations #-}
 module Concurrent.Par.Unsafe where
 
+import Concurrent.Par.Types
 import Control.Concurrent
 import Control.Monad.Catch
 import Control.Monad.IO.Class
@@ -21,9 +22,6 @@ import Control.Monad.Trans.Reader as Reader
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
 import GHC.Prim (RealWorld)
-
-data Determinism = Deterministic | NonDeterministic
-data Idempotence = Idempotent | NonIdempotent
 
 type role Par nominal nominal nominal representational
 

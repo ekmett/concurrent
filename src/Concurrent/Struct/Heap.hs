@@ -5,7 +5,7 @@ module Concurrent.Struct.Heap
   (
   -- * Mutable API
     Heap(..)
-  , new
+  , newHeap
   , insert
   , extractMin
   , meld
@@ -40,8 +40,8 @@ newtype Heap k v s = Heap (Ref (Node k v) s)
 
 type TransientHeap = Node
 
-new :: MonadPrim s m => m (Heap k v s)
-new = primST $ Heap <$> newRef Nil
+newHeap :: MonadPrim s m => m (Heap k v s)
+newHeap = primST $ Heap <$> newRef Nil
 
 modify :: MonadPrim s m => (TransientHeap k v s -> ST s (a, TransientHeap k v s)) -> Heap k v s -> m a
 modify f (Heap h) = primST $ do
